@@ -1,0 +1,10 @@
+__pycache__/
+*.pdf
+*.tex
+*.png
+*.xcf
+*.backup
+*.aux
+*.log
+*.synctex.gz
+*.pbm
