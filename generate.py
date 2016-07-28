@@ -27,21 +27,17 @@ def generate_tex(identifier=0, questions=(), answers=None):
 \newcommand{\tikzscale}{.5}
 \begin{document}
 """)
-        # Two top squares to calibrate
+        # Two top squares to calibrate and identification band between them
+
+        # Top left square.
         f.write(r"""
 \begin{{tikzpicture}}[scale={scale}]
  \draw[fill=black] (0,0) rectangle (1,1);
-\end{{tikzpicture}}
-\hfill
-\begin{{tikzpicture}}[scale={scale}]
- \draw[fill=black] (0,0) rectangle (1,1);
-\end{{tikzpicture}}
-""".format(scale=SQUARE_SIZE_IN_CM))
+\end{{tikzpicture}}""".format(scale=SQUARE_SIZE_IN_CM))
 
         # Identification band
         n = identifier
-        f.write(r"""
-\begin{{center}}
+        f.write(r"""\hfill
 \begin{{tikzpicture}}[scale={scale}]
 \draw[fill=black] (-1,0) rectangle (0,1);
 """.format(scale=SQUARE_SIZE_IN_CM))
@@ -50,13 +46,24 @@ def generate_tex(identifier=0, questions=(), answers=None):
 """.format(color=("black" if n%2 else "white"), x1=i, x2=i+1))
             n = n//2
 
-        f.write(r"""
-\end{tikzpicture}
-\end{center}
+        f.write(r"""\end{tikzpicture}
+\hfill
 """)
+
+        # Top right square.
+        f.write(r"""\begin{{tikzpicture}}[scale={scale}]
+ \draw[fill=black] (0,0) rectangle (1,1);
+\end{{tikzpicture}}
+""".format(scale=SQUARE_SIZE_IN_CM))
+
+        # Header delimiter.
+
         f.write(r"""
 
-\begin{scriptsize}\textsc{Attention, ne rien écrire ci-dessus.}\end{scriptsize}
+\vspace{-1em}
+\begin{scriptsize}\hfill\textsc{Ne rien écrire ci-dessus.}\hfill\hfill\hfill\textsc{Ne rien écrire ci-dessus.}\hfill\hfil\end{scriptsize}
+\smallskip
+
 \hrule
 
 """)

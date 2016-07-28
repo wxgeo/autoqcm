@@ -5,7 +5,8 @@ from PIL import Image
 
 from pbm_tools import lire_image
 
-SQUARE_SIZE_IN_CM = 0.5
+SQUARE_SIZE_IN_CM = 0.25
+CELLULAR_SIZE_IN_CM = 0.5
 
 
 # Much too slow ! (~ 30s to convert a 150 dpi A4 picture)
@@ -187,9 +188,14 @@ def scan_page(m):
     # Detecting the top 2 squares (at the top left and the top right of the
     # page) to calibrate. Since square size is not known precisely,
     # keep a high error rate for now.
-    black_squares = find_black_square(m, size=square_size, error=0.5)
-    i1, j1 = black_squares.__next__()
-    i2, j2 = black_squares.__next__()
+    maxi = maxj = int(round(2*(1 + SQUARE_SIZE_IN_CM)*dpi/2.54))
+    i1, j1 = find_black_square(m[:maxi,:maxj], size=square_size, error=0.5).__next__()
+    minj = int(round((20 - 2*(1 + SQUARE_SIZE_IN_CM))*dpi/2.54))
+    i2, j2 = find_black_square(m[:maxi,minj:], size=square_size, error=0.5).__next__()
+    j2 += minj
+
+    print("Top left square at (%s,%s)." % (i1, j1))
+    print("Top right square at (%s,%s)." % (i2, j2))
 
     # Detect rotation, and rotate picture if needed.
     rotation = atan((i2 - i1)/(j2 - j1))
@@ -224,7 +230,8 @@ def scan_page(m):
     # ■■□■□■□■■□□□■□□■ = 0b100100011010101 =  21897
     # 2**15 = 32768 different values.
 
-    i, j = black_squares.__next__()
+    i, j = find_black_square(m[:maxi,maxj:minj], size=square_size, error=0.3).__next__()
+    j += maxj
     print("Identification band starts at (%s, %s)" % (i, j))
 
     identifier = 0
@@ -236,11 +243,11 @@ def scan_page(m):
             print((k, (i, j), test_square_color(m, i, j, square_size, level=0.5)))
             identifier += 2**k
 
-    # If necessary (although highly unlikely !), one may extend protocol
+    # If necessary (although this is highly unlikely !), one may extend protocol
     # by adding a second band (or more !), starting with a black square.
-    # This function will test if a black square is present below the first one,
+    # This function will test if a black square is present below the first one ;
     # if so, the second band will be joined with the first
-    # (2**30 = 1073741824 different values), and so on.
+    # (allowing 2**30 = 1073741824 different values), and so on.
 
     print("Identification: %s" % identifier)
 
