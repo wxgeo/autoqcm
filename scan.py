@@ -137,7 +137,7 @@ def find_black_square(matrix, size=50, error=0.30):
             #      ///////////   #####################
             #      ///////////   #####################
             #      ←——————————→  ←———————————————————→
-            #      ~ error*size          size
+            #      ≃ error*size          size
 
             # Avoid to detect an already found square.
             if any((li_min <= i <= li_max and co_min <= j <= co_max)
@@ -170,10 +170,37 @@ def test_square_color(m, i, j, size, level=0.5):
     return m[i:i+size, j:j+size].sum() > level*size**2
 
 
+def read_config(pth):
+    cfg = {}
+    with open(pth) as f:
+        for line in f:
+            if line and not line.startswith("#"):
+                key, val = line.split("=")
+                cfg[key.strip()] = val.strip()
+    return cfg
 
-def scan_page(m):
+
+def scan_picture(m, config):
+    """Scan picture and return page identifier and list of answers for each question.
+
+    - m is either a numpy array or a path pointing to a PNG file.
+    - config is either a path poiting to a config file, or a dictionnary
+    containing the following keys:
+      * n_questions is the number of questions
+      * n_answers is the number of answers per question.
+
+    n_questions is the number of questions
+    n_answers is the number of answers per question.
+
+    Return an integer and a list of lists of booleans.
+    """
+
     if isinstance(m, str):
         m = read_black_and_white_png(m)
+    if isinstance(config, str):
+        config = read_config(config)
+    n_questions = int(config['n_questions'])
+    n_answers = int(config['n_answers'])
     # Evaluate approximatively squares size using image dpi.
     # Square size is equal to SQUARE_SIZE_IN_CM in theory, but this vary
     # in practice depending on printer and scanner configuration.
@@ -230,17 +257,18 @@ def scan_page(m):
     # ■■□■□■□■■□□□■□□■ = 0b100100011010101 =  21897
     # 2**15 = 32768 different values.
 
-    i, j = find_black_square(m[:maxi,maxj:minj], size=square_size, error=0.3).__next__()
-    j += maxj
-    print("Identification band starts at (%s, %s)" % (i, j))
+    i3, j3 = find_black_square(m[:maxi,maxj:minj], size=square_size, error=0.3).__next__()
+    j3 += maxj
+    print("Identification band starts at (%s, %s)" % (i3, j3))
 
     identifier = 0
     # Test the color of the 15 following squares,
     # and interpret it as a binary number.
+    j = j3
     for k in range(15):
         j += square_size
-        if test_square_color(m, i, j, square_size, level=0.5):
-            print((k, (i, j), test_square_color(m, i, j, square_size, level=0.5)))
+        if test_square_color(m, i3, j, square_size, level=0.5):
+            print((k, (i3, j), test_square_color(m, i3, j, square_size, level=0.5)))
             identifier += 2**k
 
     # If necessary (although this is highly unlikely !), one may extend protocol
@@ -254,6 +282,27 @@ def scan_page(m):
 
     # Detect the answers.
 
+    # First, it's better to exclude the header of the search area.
+    # If rotation correction was well done, we should have i1 ≃ i2 ≃ i3.
+    # Anyway, it's safer to take the max of them.
+    mini = max(i1, i2, i3) + square_size
+    cellular_size = int(round(CELLULAR_SIZE_IN_CM*pixels_per_cm))
+    i0, j0 = find_black_square(m[:maxi,:], size=cellular_size, error=0.3).__next__()
+
+    # List of all answers grouped by question.
+    answers = []
+    j = j0
+    for _ in range(n_questions):
+        answers.append([])
+        j += cellular_size
+        i = i0
+        for __ in range(n_answers):
+            i += cellular_size
+            answers[-1].append(test_square_color(m, i, j, cellular_size, level=0.5))
+
+    print("Answers:" % answers)
+
+    return identifier, answers
 
 
 def _pgm_from_matrix(matrix, squares, size):
@@ -262,7 +311,7 @@ def _pgm_from_matrix(matrix, squares, size):
     with open("debug_squares_detection.pgm"):
         pass
 
-scan_page("test.png")
+
 
 #m = lire_image("carres.pbm")
 #print(detect_all_squares(m, size=15))
