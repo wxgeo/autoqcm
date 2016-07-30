@@ -1,4 +1,5 @@
 from string import ascii_letters
+import csv
 
 SQUARE_SIZE_IN_CM = 0.25
 CELLULAR_SIZE_IN_CM = 0.5
@@ -80,6 +81,28 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
 
             """)
 
+
+        # Generating students list.
+        try:
+            f.write(r'''\begin{center}
+                \begin{tikzpicture}[scale=.25]
+                \draw [fill=black] (-1,0) rectangle (0,1) (-0.5,0) node[below] {\tiny\rotatebox{90}{\textbf{NOM}}};''')
+            with open('liste_eleves.csv') as g:
+                for i, row in enumerate(csv.reader(g)):
+                    name = ' '.join(row)
+                    a = i + 1
+                    b = i + 0.5
+                    f.write(r'''\draw ({i},0) rectangle ({a},1) ({b},0) node[below]
+                        {{\tiny \rotatebox{{90}}{{\textsc{{{name}}}}}}};'''.format(**locals()))
+            f.write(r'''\end{tikzpicture}
+                \end{center}''')
+            has_names_list = True
+        except FileNotFoundError:
+            print("Warning: liste_eleves.csv not found.")
+            has_names_list = False
+
+
+
         # Generate the table where students will answer
         scale = CELLULAR_SIZE_IN_CM
         f.write(r"""
@@ -128,6 +151,8 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
 \end{center}
 """)
 
+
+
         # That's all folks !
         f.write(r"\end{document}")
 
@@ -138,5 +163,6 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
         f.write('n_questions = %s\n' % n_questions)
         f.write('# n_answers is the number of answers per question.\n')
         f.write('n_answers = %s\n' % n_answers)
-
+        f.write('# Is a list of names of all students included ?\n')
+        f.write('has_names_list = %s\n' % has_names_list)
 
