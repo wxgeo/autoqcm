@@ -24,7 +24,7 @@ def read_black_and_white_png(name):
     # Read from PNG file.
     m = imread(name)
     # Convert to black and white picture (True means black, False means white).
-    m = (m.sum(2) < 3) | (m.min(2) < 0.5)
+    m = (m.sum(2) < 3.5) | (m.min(2) < 0.7)
     # Since alpha is always 1, previous code means pixel is black if and only if
     # min(r, g, b) < 0.5 or r + g + b < 2.
     return m
@@ -300,7 +300,7 @@ def scan_picture(m, config):
             i += cellular_size
             answers[-1].append(test_square_color(m, i, j, cellular_size, level=0.5))
 
-    print("Answers:" % answers)
+    print("Answers:\n%s" % '\n'.join(str(a) for a in answers))
 
     return identifier, answers
 

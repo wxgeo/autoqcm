@@ -3,7 +3,7 @@ from string import ascii_letters
 SQUARE_SIZE_IN_CM = 0.25
 CELLULAR_SIZE_IN_CM = 0.5
 
-def generate_tex(filename, identifier=0, questions=(), answers=None):
+def generate_tex(filename, identifier=0, questions=(), answers=None, options={}):
     """Generate a tex file to be scanned later.
 
     filename is a filename without extension.
@@ -112,9 +112,10 @@ def generate_tex(filename, identifier=0, questions=(), answers=None):
                 \draw (-1,{y1}) rectangle (0,{y2}) (-0.5,{y3}) node {{{name}}};
                 """.format(**locals())
                 )
-            for x1 in range(n):
+            for x1 in range(n_questions):
+                opt = options.get((x1, i), "")
                 x2=x1 + 1
-                f.write(r"""\draw ({x1},{y1}) rectangle ({x2},{y2});
+                f.write(r"""\draw [{opt}] ({x1},{y1}) rectangle ({x2},{y2});
                     """.format(**locals())
                     )
 
