@@ -55,9 +55,11 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
                 """.format(color=("black" if n%2 else "white"), x1=i, x2=i+1))
             n = n//2
 
-        f.write(r"""\end{tikzpicture}
+        f.write(r"""\draw (15, .5) node [right] {{\tiny{identifier}}};
+            \end{{tikzpicture}}
             \hfill
-            """)
+            """.format(**locals())
+            )
 
         # Top right square.
         f.write(r"""\begin{{tikzpicture}}[scale={scale}]
