@@ -32,6 +32,11 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
             \usepackage[left=1cm,right=1cm,top=1cm,bottom=1cm]{geometry}
             \parindent=0cm
             \newcommand{\tikzscale}{.5}
+            \makeatletter
+            \newcommand{\simfill}{%
+            \leavevmode \cleaders \hb@xt@ .50em{\hss $\sim$\hss }\hfill \kern \z@
+            }
+            \makeatother
             \begin{document}
             """)
         # Two top squares to calibrate and identification band between them
@@ -75,9 +80,8 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
 
             \vspace{-1em}
             \begin{scriptsize}\hfill\textsc{Ne rien écrire ci-dessus.}\hfill\hfill\hfill\textsc{Ne rien écrire ci-dessus.}\hfill\hfil\end{scriptsize}
-            \smallskip
 
-            \hrule
+            \simfill
 
             """)
 
@@ -86,17 +90,25 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
         try:
             f.write(r'''\begin{center}
                 \begin{tikzpicture}[scale=.25]
-                \draw [fill=black] (-2,0) rectangle (-1,1) (-1.5,0) node[below] {\tiny\rotatebox{90}{\textbf{NOM}}};''')
+                \draw [fill=black] (-2,0) rectangle (-1,1) (-1.5,0) node[below] {\tiny\rotatebox{-90}{\texttt{\textbf{Cochez le nom}}}};''')
             with open('liste_eleves.csv') as g:
-                for i, row in enumerate(csv.reader(g)):
-                    name = ' '.join(row)
+                for i, row in enumerate(reversed(list(csv.reader(g)))):
+                    name = ' '.join(item.strip() for item in row)
+                    if len(name) >= 15:
+                        _name = name[:13].strip()
+                        if " " not in name[12:13]:
+                            _name += "."
+                        name = _name
                     a = 2*i
                     b = a + 1
                     c = a + 0.5
                     f.write(r'''\draw ({a},0) rectangle ({b},1) ({c},0) node[below]
-                        {{\tiny \rotatebox{{90}}{{\textsc{{{name}}}}}}};'''.format(**locals()))
-            f.write(r'''\end{tikzpicture}
-                \end{center}''')
+                        {{\tiny \rotatebox{{-90}}{{\texttt{{{name}}}}}}};'''.format(**locals()))
+            b += 1
+            f.write(r'''\draw[rounded corners] (-3,2) rectangle ({b}, -6.5);
+                \draw[] (-0.5,2) -- (-0.5,-6.5);
+                \end{{tikzpicture}}
+                \end{{center}}'''.format(**locals()))
             has_names_list = True
         except FileNotFoundError:
             print("Warning: liste_eleves.csv not found.")
