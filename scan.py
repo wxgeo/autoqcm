@@ -1,9 +1,9 @@
 from math import atan, degrees
-from numpy import array, apply_along_axis
+from numpy import array#, apply_along_axis
 from pylab import imread
-from PIL import Image
+#~ from PIL import Image
 
-from pbm_tools import lire_image
+#~ from pbm_tools import lire_image
 
 SQUARE_SIZE_IN_CM = 0.25
 CELLULAR_SIZE_IN_CM = 0.5
@@ -73,7 +73,6 @@ def find_black_square(matrix, size=50, error=0.30):
     height, width = m.shape
     per_line = (1 - error)*size
     goal = per_line*size
-    margin = error*size
     to_avoid = []
     # Find a black pixel, starting from top left corner,
     # and scanning line by line (ie. from top to bottom).
@@ -285,7 +284,7 @@ def scan_picture(m, config):
     # First, it's better to exclude the header of the search area.
     # If rotation correction was well done, we should have i1 ≃ i2 ≃ i3.
     # Anyway, it's safer to take the max of them.
-    mini = max(i1, i2, i3) + square_size
+    maxi = max(i1, i2, i3) + square_size
     cellular_size = int(round(CELLULAR_SIZE_IN_CM*pixels_per_cm))
     i0, j0 = find_black_square(m[:maxi,:], size=cellular_size, error=0.3).__next__()
 
