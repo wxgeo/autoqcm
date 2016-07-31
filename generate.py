@@ -82,17 +82,18 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
             """)
 
 
-        # Generating students list.
+        # Generate students list.
         try:
             f.write(r'''\begin{center}
                 \begin{tikzpicture}[scale=.25]
-                \draw [fill=black] (-1,0) rectangle (0,1) (-0.5,0) node[below] {\tiny\rotatebox{90}{\textbf{NOM}}};''')
+                \draw [fill=black] (-2,0) rectangle (-1,1) (-1.5,0) node[below] {\tiny\rotatebox{90}{\textbf{NOM}}};''')
             with open('liste_eleves.csv') as g:
                 for i, row in enumerate(csv.reader(g)):
                     name = ' '.join(row)
-                    a = i + 1
-                    b = i + 0.5
-                    f.write(r'''\draw ({i},0) rectangle ({a},1) ({b},0) node[below]
+                    a = 2*i
+                    b = a + 1
+                    c = a + 0.5
+                    f.write(r'''\draw ({a},0) rectangle ({b},1) ({c},0) node[below]
                         {{\tiny \rotatebox{{90}}{{\textsc{{{name}}}}}}};'''.format(**locals()))
             f.write(r'''\end{tikzpicture}
                 \end{center}''')
@@ -103,10 +104,9 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
 
 
 
-        # Generate the table where students will answer
+        # Generate the table where students will answer.
         scale = CELLULAR_SIZE_IN_CM
-        f.write(r"""
-            \begin{{center}}
+        f.write(r"""\hfill\hfill Réponses~:\hfill
             \begin{{tikzpicture}}[scale={scale}]
             \draw[fill=black] (-1,0) rectangle (0,1);
             """.format(**locals())
@@ -148,7 +148,7 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
 
         f.write(r"""
 \end{tikzpicture}
-\end{center}
+\hfill\hfill\hfil
 """)
 
 
