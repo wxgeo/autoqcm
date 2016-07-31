@@ -14,6 +14,7 @@ def test1():
     questions0 = ["A1","A2","B1","B2","C", "D", "E1", "E2", "E3",
                     10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     n_answers0 = 5
+    n_student0 = 27
 
     generate.generate_tex(filename="test", identifier=id0,
                  questions=questions0,
@@ -24,12 +25,16 @@ def test1():
                  (7, 2): "fill=red",
                  (19, 4):"fill=green!50!gray!50!white",
                  (19, 3):"fill=black!20!white",
-                 }
+                 },
+                 _n_student=n_student0,
                            )
     command("pdflatex test.tex")
     command("inkscape -f test.pdf -b white -d 150 -e test.png")
-    id1, answers = scan.scan_picture("test.png", "test.config")
+    id1, answers, n_student1 = scan.scan_picture("test.png", "test.config")
+    print((id1, answers, n_student1))
     assert(id1 == id0)
+    assert(n_student1 == n_student0)
     assert(len(questions0) == len(answers))
     assert(all(n_answers0 == len(answer) for answer in answers))
+
 

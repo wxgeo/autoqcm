@@ -2,9 +2,9 @@ from string import ascii_letters
 import csv
 
 SQUARE_SIZE_IN_CM = 0.25
-CELLULAR_SIZE_IN_CM = 0.5
+CELL_SIZE_IN_CM = 0.5
 
-def generate_tex(filename, identifier=0, questions=(), answers=None, options={}):
+def generate_tex(filename, identifier=0, questions=(), answers=None, options={}, _n_student=None):
     """Generate a tex file to be scanned later.
 
     filename is a filename without extension.
@@ -15,9 +15,14 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
     or an integer n (questions number will be automatically generated then:
     1, 2, 3, ..., n).
 
-    answer is either a list (or any iterable) of questions numbers,
+    answers is either a list (or any iterable) of questions numbers,
     or an integer n≤26 (answers identifiers will be automatically generated then:
     a, b, c, ...).
+
+    options is a dict keys are tuples (column, line) and values are tikz options
+    to be passed to corresponding cell in the table for answers.
+
+    _n_student is for test purpose only (select a student number).
     """
 
     if filename.endswith(".tex"):
@@ -92,7 +97,9 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
                 \begin{tikzpicture}[scale=.25]
                 \draw [fill=black] (-2,0) rectangle (-1,1) (-1.5,0) node[below] {\tiny\rotatebox{-90}{\texttt{\textbf{Cochez le nom}}}};''')
             with open('liste_eleves.csv') as g:
-                for i, row in enumerate(reversed(list(csv.reader(g)))):
+                l = list(csv.reader(g))
+                n_students = len(l)
+                for i, row in enumerate(reversed(l)):
                     name = ' '.join(item.strip() for item in row)
                     if len(name) >= 15:
                         _name = name[:13].strip()
@@ -102,22 +109,22 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
                     a = 2*i
                     b = a + 1
                     c = a + 0.5
-                    f.write(r'''\draw ({a},0) rectangle ({b},1) ({c},0) node[below]
+                    color = ('black' if _n_student == n_students - i else 'white')
+                    f.write(r'''\draw[fill={color}] ({a},0) rectangle ({b},1) ({c},0) node[below]
                         {{\tiny \rotatebox{{-90}}{{\texttt{{{name}}}}}}};'''.format(**locals()))
             b += 1
             f.write(r'''\draw[rounded corners] (-3,2) rectangle ({b}, -6.5);
                 \draw[] (-0.5,2) -- (-0.5,-6.5);
                 \end{{tikzpicture}}
                 \end{{center}}'''.format(**locals()))
-            has_names_list = True
         except FileNotFoundError:
             print("Warning: liste_eleves.csv not found.")
-            has_names_list = False
+            n_students = 0
 
 
 
         # Generate the table where students will answer.
-        scale = CELLULAR_SIZE_IN_CM
+        scale = CELL_SIZE_IN_CM
         f.write(r"""\hfill\hfill Réponses~:\hfill
             \begin{{tikzpicture}}[scale={scale}]
             \draw[fill=black] (-1,0) rectangle (0,1);
@@ -175,6 +182,6 @@ def generate_tex(filename, identifier=0, questions=(), answers=None, options={})
         f.write('n_questions = %s\n' % n_questions)
         f.write('# n_answers is the number of answers per question.\n')
         f.write('n_answers = %s\n' % n_answers)
-        f.write('# Is a list of names of all students included ?\n')
-        f.write('has_names_list = %s\n' % has_names_list)
+        f.write('# Length of students list (0 if no list at all)\n')
+        f.write('n_students = %s\n' % n_students)
 

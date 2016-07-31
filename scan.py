@@ -6,7 +6,7 @@ from pylab import imread
 #~ from pbm_tools import lire_image
 
 SQUARE_SIZE_IN_CM = 0.25
-CELLULAR_SIZE_IN_CM = 0.5
+CELL_SIZE_IN_CM = 0.5
 
 
 # Much too slow ! (~ 30s to convert a 150 dpi A4 picture)
@@ -194,12 +194,21 @@ def scan_picture(m, config):
     Return an integer and a list of lists of booleans.
     """
 
+    # ------------------------------------------------------------------
+    #                          CONFIGURATION
+    # ------------------------------------------------------------------
+    # Load configuration.
     if isinstance(m, str):
         m = read_black_and_white_png(m)
     if isinstance(config, str):
         config = read_config(config)
     n_questions = int(config['n_questions'])
     n_answers = int(config['n_answers'])
+    n_students = int(config['n_students'])
+
+    # ------------------------------------------------------------------
+    #                          CALIBRATION
+    # ------------------------------------------------------------------
     # Evaluate approximatively squares size using image dpi.
     # Square size is equal to SQUARE_SIZE_IN_CM in theory, but this vary
     # in practice depending on printer and scanner configuration.
@@ -250,6 +259,10 @@ def scan_picture(m, config):
     square_size = int(round(SQUARE_SIZE_IN_CM*pixels_per_cm))
     print("Square size final value (pixels): %s" % square_size)
 
+
+    # ------------------------------------------------------------------
+    #                      READ IDENTIFIER
+    # ------------------------------------------------------------------
     # Now, detect the home made "QR code".
     # This code is made of a band of 16 black or white squares
     # (the first one is always black and is only used to detect the band).
@@ -270,7 +283,7 @@ def scan_picture(m, config):
             print((k, (i3, j), test_square_color(m, i3, j, square_size, level=0.5)))
             identifier += 2**k
 
-    # If necessary (although this is highly unlikely !), one may extend protocol
+    # Nota: If necessary (although this is highly unlikely !), one may extend protocol
     # by adding a second band (or more !), starting with a black square.
     # This function will test if a black square is present below the first one ;
     # if so, the second band will be joined with the first
@@ -278,15 +291,39 @@ def scan_picture(m, config):
 
     print("Identification: %s" % identifier)
 
+    vpos = max(i1, i2, i3) + square_size
 
+    # ------------------------------------------------------------------
+    #                  READ STUDENT NAME (OPTIONAL)
+    # ------------------------------------------------------------------
+    student_number = None
+    if n_students:
+        i, j = find_black_square(m[vpos:,:], size=square_size, error=0.3).__next__()
+
+        l = []
+        for k in range(n_students):
+            j += 2*square_size
+            l.append(test_square_color(m[vpos:,:], i, j, square_size, level=0.5))
+
+        n = l.count(True)
+        if n == 0:
+            print("Warning: no student name !")
+        elif n > 1:
+            print("Warning: several students names !")
+        else:
+            student_number = n_students - l.index(True)
+
+    vpos += i + square_size
+
+    # ------------------------------------------------------------------
+    #                      READ ANSWERS
+    # ------------------------------------------------------------------
     # Detect the answers.
-
     # First, it's better to exclude the header of the search area.
     # If rotation correction was well done, we should have i1 ≃ i2 ≃ i3.
     # Anyway, it's safer to take the max of them.
-    maxi = max(i1, i2, i3) + square_size
-    cellular_size = int(round(CELLULAR_SIZE_IN_CM*pixels_per_cm))
-    i0, j0 = find_black_square(m[:maxi,:], size=cellular_size, error=0.3).__next__()
+    cellular_size = int(round(CELL_SIZE_IN_CM*pixels_per_cm))
+    i0, j0 = find_black_square(m[vpos:,:], size=cellular_size, error=0.3).__next__()
 
     # List of all answers grouped by question.
     answers = []
@@ -301,7 +338,7 @@ def scan_picture(m, config):
 
     print("Answers:\n%s" % '\n'.join(str(a) for a in answers))
 
-    return identifier, answers
+    return identifier, answers, student_number
 
 
 def _pgm_from_matrix(matrix, squares, size):
