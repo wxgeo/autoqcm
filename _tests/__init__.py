@@ -1,13 +1,22 @@
 from importlib import reload
+from os.path import dirname
 from numpy import array
 
-from scriptlib import command
+from scriptlib import command, cd
 import generate
 import scan
 
+
+def compile_and_scan(name):
+    command("pdflatex -interaction=nonstopmode %s.tex" % name)
+    command("inkscape -f %s.pdf -b white -d 150 -e %s.png" % (name, name))
+    return scan.scan_picture("%s.png" % name, "%s.config" % name)
+
+
 def test1():
-    reload(generate)
-    reload(scan)
+    cd(dirname(__file__))
+    #~ reload(generate)
+    #~ reload(scan)
     id0 = 1173
     # 1173 = 1 + 4 + 16 + 128 + 1024 → ■■□■□■□□■□□■□□□□
     #
@@ -31,24 +40,20 @@ def test1():
                  },
                  #_n_student=n_student0,
                            )
-    command("pdflatex %s.tex" % name)
-    command("inkscape -f %s.pdf -b white -d 150 -e %s.png" % (name, name))
-    id1, answers, n_student1 = scan.scan_picture("%s.png" % name, "%s.config" % name)
+    id1, answers, n_student1 = compile_and_scan(name)
+
     assert id1 == id0
     #assert n_student1 == n_student0
     assert len(questions0) == len(answers)
     assert all(n_answers0 == len(answer) for answer in answers)
     assert (array(answers).nonzero() == array(([2, 4, 7, 19, 19], [3, 1, 2, 3, 4]))).all()
+
     return ((id1, answers, n_student1))
 
 def test2():
     reload(generate)
     reload(scan)
     id0 = 27
-    # 1173 = 1 + 4 + 16 + 128 + 1024 → ■■□■□■□□■□□■□□□□
-    #
-    #     ■   ■ □ ■ □ ■  □  □   ■   □   □   ■    □    □    □     □
-    #   start 1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384
     questions0 = 20
     n_answers0 = 8
     name = "test2"
@@ -64,14 +69,14 @@ def test2():
                  (19, 3):"fill=black!20!white",
                  },
                            )
-    command("pdflatex %s.tex" % name)
-    command("inkscape -f %s.pdf -b white -d 150 -e %s.png" % (name, name))
-    id1, answers, n_student1 = scan.scan_picture("%s.png" % name, "%s.config" % name)
+    id1, answers, n_student1 = compile_and_scan(name)
+
     assert id1 == id0
     assert n_student1 is None
     assert questions0 == len(answers)
     assert all(n_answers0 == len(answer) for answer in answers)
     assert (array(answers).nonzero() == array(([2, 4, 7, 19, 19], [3, 1, 2, 3, 4]))).all()
+
     return ((id1, answers, n_student1))
 
 

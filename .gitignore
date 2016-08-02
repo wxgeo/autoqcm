@@ -8,3 +8,7 @@ __pycache__/
 *.log
 *.synctex.gz
 *.pbm
+*.config
+*.bak
+*.csv
+divers
