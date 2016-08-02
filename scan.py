@@ -298,12 +298,13 @@ def scan_picture(m, config):
     # ------------------------------------------------------------------
     student_number = None
     if n_students:
-        i, j = find_black_square(m[vpos:,:], size=square_size, error=0.3).__next__()
+        search_area = m[vpos:,:]
+        i, j = find_black_square(search_area, size=square_size, error=0.3).__next__()
 
         l = []
         for k in range(n_students):
             j += 2*square_size
-            l.append(test_square_color(m[vpos:,:], i, j, square_size, level=0.5))
+            l.append(test_square_color(search_area, i, j, square_size, level=0.5))
 
         n = l.count(True)
         if n == 0:
@@ -312,6 +313,7 @@ def scan_picture(m, config):
             print("Warning: several students names !")
         else:
             student_number = n_students - l.index(True)
+            print("Student number: %s" % student_number)
 
     vpos += i + square_size
 
@@ -322,19 +324,20 @@ def scan_picture(m, config):
     # First, it's better to exclude the header of the search area.
     # If rotation correction was well done, we should have i1 ≃ i2 ≃ i3.
     # Anyway, it's safer to take the max of them.
-    cellular_size = int(round(CELL_SIZE_IN_CM*pixels_per_cm))
-    i0, j0 = find_black_square(m[vpos:,:], size=cellular_size, error=0.3).__next__()
+    cell_size = int(round(CELL_SIZE_IN_CM*pixels_per_cm))
+    search_area = m[vpos:,:]
+    i0, j0 = find_black_square(search_area, size=cell_size, error=0.3).__next__()
 
     # List of all answers grouped by question.
     answers = []
     j = j0
     for _ in range(n_questions):
         answers.append([])
-        j += cellular_size
+        j += cell_size
         i = i0
         for __ in range(n_answers):
-            i += cellular_size
-            answers[-1].append(test_square_color(m, i, j, cellular_size, level=0.5))
+            i += cell_size
+            answers[-1].append(test_square_color(search_area, i, j, cell_size, level=0.5))
 
     print("Answers:\n%s" % '\n'.join(str(a) for a in answers))
 
