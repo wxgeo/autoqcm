@@ -5,8 +5,7 @@ from pylab import imread
 
 #~ from pbm_tools import lire_image
 
-SQUARE_SIZE_IN_CM = 0.25
-CELL_SIZE_IN_CM = 0.5
+from parameters import SQUARE_SIZE_IN_CM, CELL_SIZE_IN_CM
 
 
 # Much too slow ! (~ 30s to convert a 150 dpi A4 picture)
@@ -187,9 +186,7 @@ def scan_picture(m, config):
     containing the following keys:
       * n_questions is the number of questions
       * n_answers is the number of answers per question.
-
-    n_questions is the number of questions
-    n_answers is the number of answers per question.
+      * n_students is the number of students
 
     Return an integer and a list of lists of booleans.
     """
@@ -342,6 +339,11 @@ def scan_picture(m, config):
     print("Answers:\n%s" % '\n'.join(str(a) for a in answers))
 
     return identifier, answers, student_number
+
+
+def scan_all_pages(pics, config):
+    for pic in pics:
+        identifier, answers, student_number = scan_picture(pic, config)
 
 
 def _pgm_from_matrix(matrix, squares, size):

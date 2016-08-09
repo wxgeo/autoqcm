@@ -27,10 +27,27 @@ def test1():
     n_answers0 = 5
     n_student0 = 27
     name = "test1"
+    intro = r"""\begin{tikzpicture}[scale=0.5]
+        \draw[rounded corners] (0,1) rectangle (14,-5);
+        \draw[rounded corners,fill=gray!20!white] (0,-3) rectangle (14,-5);
+        \draw[fill=white]  (0,0) rectangle (14,-4);
+        \draw (0,0) -- (14,0) (7,0.5) node {\small\decofourleft\quad\textbf{\textsc{Interrogation Écrite n\textdegree{}3}}\quad\decofourright};
+        \draw (0,0) node [below right] {\small\begin{minipage}{6cm}
+                                        \begin{itemize}
+                                         \item 1 bonne réponse rapporte 1 point
+                                         \item 1 mauvaise réponse enlève 0,25 point
+                                         \item l'absence de réponse n'enlève ni ne rajoute aucun point
+                                        \end{itemize}
+                                       \end{minipage}};
+
+        \draw (0,-4) -- (14,-4) (7,-4.5) node {\small\textbf{Répondez dans le tableau ci-contre \ding{43}}};
+        \end{tikzpicture}
+        \hfill"""
 
     generate.generate_tex(filename=name, identifier=id0,
                  questions=questions0,
                  answers=n_answers0,
+                 introduction=intro,
                  options={
                  (2, 3):"fill=blue!50!gray!50!white",
                  (4, 1): "fill=black",
